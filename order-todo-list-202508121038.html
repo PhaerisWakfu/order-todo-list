@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点餐系统</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+      }
+
+      .container {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
+      }
+
+      .stat-item {
+        text-align: center;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 10px;
+        border-radius: 10px;
+      }
+
+      .stat-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+      }
+
+      .stat-item.active {
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        display: block;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        opacity: 0.9;
+      }
+
+      .orders-container {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .order-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+        background: #fafafa;
+      }
+
+      .order-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .order-item.completed {
+        background: #f0f0f0;
+        opacity: 0.7;
+      }
+
+      .order-number {
+        background: #667eea;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 15px;
+        flex-shrink: 0;
+      }
+
+      .order-content {
+        flex: 1;
+        margin-right: 15px;
+      }
+
+      .order-name {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 5px;
+      }
+
+      .order-time {
+        font-size: 12px;
+        color: #666;
+      }
+
+      .order-item.completed .order-name {
+        text-decoration: line-through;
+        color: #999;
+      }
+
+      .complete-btn {
+        background: #4caf50;
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+      }
+
+      .complete-btn:hover {
+        background: #45a049;
+        transform: scale(1.1);
+      }
+
+      .complete-btn.completed {
+        background: #999;
+      }
+
+      .quick-actions {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .quick-actions h3 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .action-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 15px 10px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .action-btn:active {
+        transform: translateY(0);
+      }
+
+      .action-btn .full-name {
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .action-btn:hover .full-name {
+        opacity: 1;
+      }
+
+      .reset-btn {
+        background: #ff4757;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        width: 100%;
+        margin-top: 20px;
+        transition: all 0.3s ease;
+      }
+
+      .reset-btn:hover {
+        background: #ff3742;
+        transform: translateY(-2px);
+      }
+
+      .empty-state {
+        text-align: center;
+        color: #999;
+        padding: 40px 20px;
+      }
+
+      .copyright {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        margin-top: 20px;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .copyright .author {
+        font-weight: 500;
+        margin-bottom: 5px;
+      }
+
+      .copyright .phone {
+        opacity: 0.9;
+      }
+
+      .empty-state i {
+        font-size: 48px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+      }
+
+      /* 滚动条样式 */
+      .orders-container::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .orders-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+      }
+
+      .orders-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+      }
+
+      .orders-container::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 480px) {
+        .container {
+          padding: 0 15px;
+        }
+
+        .action-buttons {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .action-btn {
+          padding: 12px 8px;
+          font-size: 13px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🍽️ 点餐系统</h1>
+      </div>
+
+      <div class="stats">
+        <div class="stat-item" data-filter="all">
+          <span class="stat-number" id="totalOrders">0</span>
+          <span class="stat-label">总订单</span>
+        </div>
+        <div class="stat-item" data-filter="pending">
+          <span class="stat-number" id="pendingOrders">0</span>
+          <span class="stat-label">待完成</span>
+        </div>
+        <div class="stat-item" data-filter="completed">
+          <span class="stat-number" id="completedOrders">0</span>
+          <span class="stat-label">已完成</span>
+        </div>
+      </div>
+
+      <div class="orders-container" id="ordersContainer">
+        <div class="empty-state">
+          <div>📝</div>
+          <p>还没有订单，点击下方按钮开始点餐吧！</p>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <h3>快捷点餐</h3>
+        <div class="action-buttons">
+          <button class="action-btn" data-name="鸡柳" data-short="鸡">
+            鸡
+            <span class="full-name">鸡柳</span>
+          </button>
+          <button class="action-btn" data-name="空气年糕" data-short="年">
+            年
+            <span class="full-name">空气年糕</span>
+          </button>
+          <button class="action-btn" data-name="薯条" data-short="薯">
+            薯
+            <span class="full-name">薯条</span>
+          </button>
+          <button class="action-btn" data-name="山药片" data-short="山">
+            山
+            <span class="full-name">山药片</span>
+          </button>
+          <button class="action-btn" data-name="三拼" data-short="三">
+            三
+            <span class="full-name">三拼</span>
+          </button>
+          <button
+            class="action-btn"
+            data-name="鸡柳+空气年糕"
+            data-short="鸡年"
+          >
+            鸡年
+            <span class="full-name">鸡柳+空气年糕</span>
+          </button>
+          <button class="action-btn" data-name="鸡柳+薯条" data-short="鸡薯">
+            鸡薯
+            <span class="full-name">鸡柳+薯条</span>
+          </button>
+          <button
+            class="action-btn"
+            data-name="空气年糕+薯条"
+            data-short="年薯"
+          >
+            年薯
+            <span class="full-name">空气年糕+薯条</span>
+          </button>
+          <button class="action-btn" data-name="团购套餐" data-short="团">
+            团
+            <span class="full-name">团购套餐</span>
+          </button>
+        </div>
+        <button class="reset-btn" id="resetBtn">重置所有数据</button>
+      </div>
+
+      <div class="copyright">
+        <div class="author">作者: @李啾啾</div>
+        <div class="phone">电话: @18321809917</div>
+      </div>
+    </div>
+
+    <script>
+      class OrderSystem {
+        constructor() {
+          this.orders = [];
+          this.nextOrderNumber = 1;
+          this.currentFilter = "all"; // 当前筛选状态
+          this.init();
+        }
+
+        init() {
+          this.loadFromStorage();
+          this.bindEvents();
+          this.renderOrders();
+          this.updateStats();
+          this.setActiveFilter("all"); // 默认显示所有订单
+        }
+
+        bindEvents() {
+          // 绑定快捷点餐按钮
+          document.querySelectorAll(".action-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              const name = e.target.dataset.name;
+              this.addOrder(name);
+            });
+          });
+
+          // 绑定重置按钮
+          document.getElementById("resetBtn").addEventListener(
+            "click",
+            () => {
+              this.showResetConfirmation();
+            },
+          );
+
+          // 绑定统计筛选按钮
+          document.querySelectorAll(".stat-item").forEach((stat) => {
+            stat.addEventListener("click", (e) => {
+              const filter = e.currentTarget.dataset.filter;
+              this.setActiveFilter(filter);
+              this.renderOrders();
+            });
+          });
+        }
+
+        addOrder(name) {
+          // 如果是团购，直接添加订单
+          if (name === "团购套餐") {
+            this.createOrder(name, "标准份");
+            return;
+          }
+
+          // 其他菜品显示份量选择
+          this.showSizeSelection(name);
+        }
+
+        showSizeSelection(dishName) {
+          // 创建份量选择弹窗
+          const modal = document.createElement("div");
+          modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                `;
+
+          const modalContent = document.createElement("div");
+          modalContent.style.cssText = `
+                    background: white;
+                    border-radius: 20px;
+                    padding: 30px;
+                    text-align: center;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 300px;
+                    width: 90%;
+                `;
+
+          modalContent.innerHTML = `
+                    <h3 style="margin-bottom: 20px; color: #333;">选择份量</h3>
+                    <p style="margin-bottom: 25px; color: #666;">${dishName}</p>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <button class="size-btn" data-size="大份">大份</button>
+                        <button class="size-btn" data-size="中份">中份</button>
+                        <button class="size-btn" data-size="小份">小份</button>
+                    </div>
+                `;
+
+          // 添加按钮样式
+          const style = document.createElement("style");
+          style.textContent = `
+                    .size-btn {
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        color: white;
+                        border: none;
+                        padding: 15px 20px;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+                    }
+                    .size-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    }
+                `;
+          document.head.appendChild(style);
+
+          // 绑定份量选择事件
+          modalContent.querySelectorAll(".size-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const size = btn.dataset.size;
+              this.createOrder(dishName, size);
+              document.body.removeChild(modal);
+            });
+          });
+
+          // 点击背景关闭弹窗
+          modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+              document.body.removeChild(modal);
+            }
+          });
+
+          modal.appendChild(modalContent);
+          document.body.appendChild(modal);
+        }
+
+        createOrder(dishName, size) {
+          const order = {
+            id: Date.now(),
+            number: this.nextOrderNumber++,
+            name: size === "标准份" ? dishName : `${dishName}(${size})`,
+            time: new Date().toLocaleTimeString("zh-CN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            completed: false,
+          };
+
+          this.orders.unshift(order);
+          this.saveToStorage();
+          this.renderOrders();
+          this.updateStats();
+
+          // 添加动画效果
+          this.showOrderAddedAnimation(order);
+        }
+
+        completeOrder(orderId) {
+          const order = this.orders.find((o) => o.id === orderId);
+          if (order) {
+            order.completed = !order.completed;
+            this.saveToStorage();
+            this.renderOrders();
+            this.updateStats();
+          }
+        }
+
+        showOrderAddedAnimation(order) {
+          // 创建临时提示
+          const notification = document.createElement("div");
+          notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #4CAF50;
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 25px;
+                    font-size: 16px;
+                    z-index: 1000;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                    animation: slideDown 0.5s ease-out;
+                `;
+          notification.textContent = `已添加：${order.name}`;
+          document.body.appendChild(notification);
+
+          // 3秒后移除
+          setTimeout(() => {
+            notification.remove();
+          }, 3000);
+        }
+
+        renderOrders() {
+          const container = document.getElementById("ordersContainer");
+
+          // 根据当前筛选条件过滤订单
+          let filteredOrders = this.orders;
+          if (this.currentFilter === "pending") {
+            filteredOrders = this.orders.filter((order) =>
+              !order.completed
+            );
+          } else if (this.currentFilter === "completed") {
+            filteredOrders = this.orders.filter((order) =>
+              order.completed
+            );
+          }
+
+          if (filteredOrders.length === 0) {
+            let emptyMessage = "";
+            if (this.currentFilter === "pending") {
+              emptyMessage = "没有待完成的订单";
+            } else if (this.currentFilter === "completed") {
+              emptyMessage = "没有已完成的订单";
+            } else {
+              emptyMessage = "还没有订单，点击下方按钮开始点餐吧！";
+            }
+
+            container.innerHTML = `
+                        <div class="empty-state">
+                            <div>📝</div>
+                            <p>${emptyMessage}</p>
+                        </div>
+                    `;
+            return;
+          }
+
+          container.innerHTML = filteredOrders.map((order) => `
+                    <div class="order-item ${
+            order.completed ? "completed" : ""
+          }" data-id="${order.id}">
+                        <div class="order-number">${order.number}</div>
+                        <div class="order-content">
+                            <div class="order-name">${order.name}</div>
+                            <div class="order-time">${order.time}</div>
+                        </div>
+                        <button class="complete-btn ${
+            order.completed ? "completed" : ""
+          }" 
+                                onclick="orderSystem.completeOrder(${order.id})">
+                            ${order.completed ? "✓" : "○"}
+                        </button>
+                    </div>
+                `).join("");
+        }
+
+        updateStats() {
+          const total = this.orders.length;
+          const completed =
+            this.orders.filter((o) => o.completed).length;
+          const pending = total - completed;
+
+          document.getElementById("totalOrders").textContent = total;
+          document.getElementById("pendingOrders").textContent =
+            pending;
+          document.getElementById("completedOrders").textContent =
+            completed;
+        }
+
+        setActiveFilter(filter) {
+          // 移除所有active状态
+          document.querySelectorAll(".stat-item").forEach((stat) => {
+            stat.classList.remove("active");
+          });
+
+          // 设置当前筛选器为active状态
+          const activeStat = document.querySelector(
+            `[data-filter="${filter}"]`,
+          );
+          if (activeStat) {
+            activeStat.classList.add("active");
+          }
+
+          this.currentFilter = filter;
+        }
+
+        showResetConfirmation() {
+          if (
+            confirm(
+              "⚠️ 确定要清空所有数据吗？\n\n此操作将删除所有订单记录，且无法恢复！",
+            )
+          ) {
+            this.resetAllData();
+          }
+        }
+
+        resetAllData() {
+          this.orders = [];
+          this.nextOrderNumber = 1;
+          this.saveToStorage();
+          this.renderOrders();
+          this.updateStats();
+
+          // 显示重置成功提示
+          const notification = document.createElement("div");
+          notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #ff4757;
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 25px;
+                    font-size: 16px;
+                    z-index: 1000;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                    animation: slideDown 0.5s ease-out;
+                `;
+          notification.textContent = "所有数据已重置";
+          document.body.appendChild(notification);
+
+          setTimeout(() => {
+            notification.remove();
+          }, 3000);
+        }
+
+        saveToStorage() {
+          localStorage.setItem(
+            "orderSystemData",
+            JSON.stringify({
+              orders: this.orders,
+              nextOrderNumber: this.nextOrderNumber,
+            }),
+          );
+        }
+
+        loadFromStorage() {
+          try {
+            const data = localStorage.getItem("orderSystemData");
+            if (data) {
+              const parsed = JSON.parse(data);
+              this.orders = parsed.orders || [];
+              this.nextOrderNumber = parsed.nextOrderNumber || 1;
+            }
+          } catch (error) {
+            console.error("加载数据失败:", error);
+            this.orders = [];
+            this.nextOrderNumber = 1;
+          }
+        }
+      }
+
+      // 添加CSS动画
+      const style = document.createElement("style");
+      style.textContent = `
+            @keyframes slideDown {
+                from {
+                    transform: translateX(-50%) translateY(-100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+            }
+        `;
+      document.head.appendChild(style);
+
+      // 初始化系统
+      const orderSystem = new OrderSystem();
+
+      // 添加触摸反馈
+      document.addEventListener("touchstart", function () {}, {
+        passive: true,
+      });
+    </script>
+  </body>
+</html>
